@@ -6,6 +6,7 @@ public class TownCentre : Building
 
     private void Start()
     {
+        type = Type.TownCentre;
         resourceManager = FindObjectOfType<ResourceManager>();
         if (resourceManager != null)
         {

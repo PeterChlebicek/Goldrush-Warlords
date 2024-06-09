@@ -11,7 +11,7 @@ public class UnitSelections : MonoBehaviour
 
     private void Awake()
     {
-        if(instance != null && instance != this)
+        if (instance != null && instance != this)
         {
             Destroy(this.gameObject);
         }
@@ -20,50 +20,66 @@ public class UnitSelections : MonoBehaviour
             instance = this;
         }
     }
+
     public void ClickSelect(GameObject unitToAdd)
     {
-            DeselectAll();
-            unitSelected.Add(unitToAdd);
-            unitToAdd.transform.GetChild(0).gameObject.SetActive(true);
+        DeselectAll();
+        unitSelected.Add(unitToAdd);
+        SetSphereActive(unitToAdd, true);
     }
+
     public void ShiftClickSelect(GameObject unitToAdd)
     {
-        if(!unitSelected.Contains(unitToAdd))
+        if (!unitSelected.Contains(unitToAdd))
         {
             unitSelected.Add(unitToAdd);
-            unitToAdd.transform.GetChild(0).gameObject.SetActive(true);
+            SetSphereActive(unitToAdd, true);
         }
         else
         {
             unitSelected.Remove(unitToAdd);
-            unitToAdd.transform.GetChild(0).gameObject.SetActive(false);
+            SetSphereActive(unitToAdd, false);
         }
     }
+
     public void DragSelect(GameObject unitToAdd)
     {
         if (!unitSelected.Contains(unitToAdd))
         {
             unitSelected.Add(unitToAdd);
-            unitToAdd.transform.GetChild(0).gameObject.SetActive(true);
+            SetSphereActive(unitToAdd, true);
         }
     }
 
     public void RemoveUnit()
     {
-       foreach (var unit in unitSelected)
+        for (int i = unitSelected.Count - 1; i >= 0; i--)
         {
-            if (unit == null)
-                unitSelected.Remove(unit);
-        } 
+            if (unitSelected[i] == null)
+                unitSelected.RemoveAt(i);
+        }
     }
 
     public void DeselectAll()
     {
-        foreach(var unit in unitSelected)
+        foreach (var unit in unitSelected)
         {
-
-            unit.transform.GetChild(0).gameObject.SetActive(false);
+            SetSphereActive(unit, false);
         }
         unitSelected.Clear();
+    }
+
+    private void SetSphereActive(GameObject unit, bool isActive)
+    {
+        Transform sphereTransform = unit.transform.Find("Sphere");
+
+        if (sphereTransform != null)
+        {
+            sphereTransform.gameObject.SetActive(isActive);
+        }
+        else
+        {
+            Debug.LogWarning("Child 'Sphere' not found on unit: " + unit.name);
+        }
     }
 }

@@ -1,24 +1,29 @@
 using UnityEngine;
-using System;
 using System.Collections;
+using System;
 
 public class Collector : MonoBehaviour
 {
     public int MaxCapacity = 100;
-    public float CollectionInterval = 1.5f;
+    public int InventoryCapacity = 0;
+    public float CollectionRate = 20f; // Množství suroviny sebere za urèitý interval
     public string[] CollectibleTags = { "Tree", "Gold" };
 
-    private int InventoryCapacity = 0;
     private bool isCollecting = false;
     private Transform targetResource;
     private ResourceManager resourceManager;
     private UnitMovement unitMovement;
+    private ResourceTextCanvas resourceTextCanvas;
+
+    // Pøidána vlastnost pro sledování typu sbírané suroviny
+    public ResourceType CurrentResourceType = ResourceType.None;
 
     private void Start()
     {
         resourceManager = FindObjectOfType<ResourceManager>();
         unitMovement = GetComponent<UnitMovement>();
-        InvokeRepeating("CollectResources", 0f, CollectionInterval);
+        resourceTextCanvas = GetComponentInChildren<ResourceTextCanvas>();
+        UpdateResourceText();
     }
 
     private void Update()
@@ -29,43 +34,83 @@ public class Collector : MonoBehaviour
         }
     }
 
-    private void CollectResources()
+    private void OnTriggerEnter(Collider other)
     {
-        if (!isCollecting)
+        if (Array.Exists(CollectibleTags, tag => other.CompareTag(tag)))
         {
-            isCollecting = true;
-            Collider[] colliders = Physics.OverlapSphere(transform.position, 2f);
-            foreach (Collider collider in colliders)
+            if (!isCollecting)
             {
-                if (Array.Exists(CollectibleTags, tag => collider.CompareTag(tag)))
+                targetResource = other.transform;
+                Resource resource = targetResource.GetComponent<Resource>();
+                if (resource != null)
                 {
-                    targetResource = collider.transform;
-                    StartCoroutine("CollectResource");
-                    break;
+                    CurrentResourceType = resource.resourceType;
+                    StartCoroutine("CollectResource", resource);
                 }
             }
         }
+
+        if (other.CompareTag("HumanTC") || other.CompareTag("HumanStorage"))
+        {
+            SubmitResources(other);
+        }
     }
 
-    private IEnumerator CollectResource()
+    private IEnumerator CollectResource(Resource resource)
     {
-        while (InventoryCapacity < MaxCapacity && targetResource != null)
+        isCollecting = true;
+        while (InventoryCapacity < MaxCapacity && resource.ResourcesRemaining > 0)
         {
-            yield return new WaitForSeconds(CollectionInterval);
-            InventoryCapacity += 20;
-            Debug.Log("Collected resources. Current capacity: " + InventoryCapacity);
+            yield return new WaitForSeconds(1f); // Sbírá každou sekundu
+            int amountToCollect = (int)CollectionRate;
+            resource.CollectResource(amountToCollect);
+            InventoryCapacity += amountToCollect;
+            UpdateResourceText();
+            Debug.Log("Sbírá suroviny. Aktuální kapacita: " + InventoryCapacity);
+
+            // Kontrola, zda je zdroj znièen
+            if (resource.ResourcesRemaining <= 0)
+            {
+                targetResource = null;
+                isCollecting = false;
+                // Hledání dalšího stejného zdroje
+                FindNextResource();
+            }
         }
         isCollecting = false;
     }
 
+    private void FindNextResource()
+    {
+        Collider[] colliders = Physics.OverlapSphere(transform.position, 50f); // Hledá v okruhu 50 jednotek
+        foreach (Collider collider in colliders)
+        {
+            if (Array.Exists(CollectibleTags, tag => collider.CompareTag(tag)))
+            {
+                Resource resource = collider.GetComponent<Resource>();
+                if (resource != null && resource.resourceType == CurrentResourceType)
+                {
+                    targetResource = collider.transform;
+                    StartCoroutine("CollectResource", resource);
+                    break;
+                }
+            }
+        }
+        // Pokud nenajde další zdroj, vrátí se na základnu
+        if (targetResource == null)
+        {
+            ReturnToBase();
+        }
+    }
+
     private void ReturnToBase()
     {
-        // Find the closest HumanTC or HumanStorage
+        // Najde nejbližší HumanTC nebo HumanStorage
         GameObject[] bases = GameObject.FindGameObjectsWithTag("HumanTC");
         GameObject[] storages = GameObject.FindGameObjectsWithTag("HumanStorage");
         GameObject closestBase = FindClosestBase(bases, storages);
 
-        // Move towards the closest base
+        // Pøesune se k nejbližší základnì
         if (closestBase != null)
         {
             if (unitMovement != null)
@@ -100,30 +145,31 @@ public class Collector : MonoBehaviour
         return closestBase;
     }
 
-    private void OnTriggerEnter(Collider other)
+    public void SubmitResources(Collider other)
     {
-        Debug.Log("triggered");
-        if (other.CompareTag("HumanTC") || other.CompareTag("HumanStorage"))
+        if (resourceManager != null && InventoryCapacity > 0)
         {
-            SubmitResources(other);
+            if (CurrentResourceType == ResourceType.Wood)
+            {
+                resourceManager.AddWood(InventoryCapacity);
+                Debug.Log("Døevo odevzdáno do skladu.");
+            }
+            else if (CurrentResourceType == ResourceType.Gold)
+            {
+                resourceManager.AddGold(InventoryCapacity);
+                Debug.Log("Zlato odevzdáno do skladu.");
+            }
+            InventoryCapacity = 0;
+            UpdateResourceText();
+            CurrentResourceType = ResourceType.None; // Reset po odevzdání
         }
     }
 
-    public void SubmitResources(Collider other)
+    private void UpdateResourceText()
     {
-        Debug.Log("ASDASD", other.gameObject);
-        if (resourceManager != null && InventoryCapacity > 0)
+        if (resourceTextCanvas != null)
         {
-            if (other.CompareTag("HumanTC"))
-            {
-                resourceManager.AddWood(InventoryCapacity);
-            }
-            else if (other.CompareTag("HumanStorage"))
-            {
-                resourceManager.AddGold(InventoryCapacity); // assuming gold is collected
-            }
-            InventoryCapacity = 0;
-            Debug.Log("Resources submitted to base.");
+            resourceTextCanvas.UpdateInventoryText(InventoryCapacity);
         }
     }
 }

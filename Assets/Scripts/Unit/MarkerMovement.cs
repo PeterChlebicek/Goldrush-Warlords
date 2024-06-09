@@ -21,8 +21,12 @@ public class MarkerMovement : MonoBehaviour
             }
         }
     }
+
     private void CreateMarker(Vector3 position)
     {
+        // Nastavení souøadnice Y na 0
+        position.y = 0;
+
         // Znièení pøedchozí instance markeru, pokud existuje
         if (markerInstance != null)
         {
@@ -32,7 +36,7 @@ public class MarkerMovement : MonoBehaviour
         // Vytvoøení nové instance markeru na daném místì
         markerInstance = Instantiate(markerPrefab, position, Quaternion.identity);
 
-        // Znièení markeru po 5 sekundách
+        // Znièení markeru po 3 sekundách
         Destroy(markerInstance, 3f);
     }
 }

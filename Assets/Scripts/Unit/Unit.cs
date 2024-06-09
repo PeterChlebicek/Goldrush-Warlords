@@ -42,7 +42,7 @@ public class Unit : MonoBehaviour
     }
     void Update()
     {
-        if(Health <= 0)
+        if (Health <= 0)
         {
             Destroy(gameObject);
         }
@@ -87,23 +87,24 @@ public class Unit : MonoBehaviour
         {
             //if (collision.gameObject.CompareTag("Enemy") || collision.gameObject.CompareTag("Player"))
             //{
-                if(collision.gameObject.GetComponent<Unit>().UnitTeam == Team.Enemy) {
+            if (collision.gameObject.GetComponent<Unit>().UnitTeam == Team.Enemy)
+            {
 
 
-                    var enemy = GetComponent<Unit>();
-                    var enemyHealthBar = GetComponentInChildren<Healthbar>();
+                var enemy = GetComponent<Unit>();
+                var enemyHealthBar = GetComponentInChildren<Healthbar>();
 
-                    int actualDamage = UnityEngine.Random.Range(MinDmg, MaxDmg) - Defense;
+                int actualDamage = UnityEngine.Random.Range(MinDmg, MaxDmg) - Defense;
 
-                    enemy.Health -= actualDamage;
+                enemy.Health -= actualDamage;
 
-                    enemyHealthBar.UpdateHealthBar(enemy.MaxHealth, enemy.Health);
+                enemyHealthBar.UpdateHealthBar(enemy.MaxHealth, enemy.Health);
 
-                    Debug.Log("Attack Enemy");
-                }
+                Debug.Log("Attack Enemy");
+            }
             //}
 
-            
+
 
         }
     }

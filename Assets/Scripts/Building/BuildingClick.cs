@@ -1,18 +1,18 @@
 using UnityEngine;
 using UnityEngine.UI;
-using System.Collections;
 
 public class BuildingClick : MonoBehaviour
 {
     private Camera myCam;
     private GameObject selectedBuilding;
 
-    public LayerMask clickable;
-    public LayerMask ground;
-
+    public LayerMask buildingsLayer;
     public GameObject buildingPanel;
-    public GameObject collectorButton;
-    public GameObject collectorPrefab;
+    public GameObject buttonPrefab; // Prefab tlaèítka
+    public GameObject unitPrefab; // Prefab jednotky
+
+    private GameObject collectorButtonInstance;
+    private GameObject[] barracksButtons = new GameObject[3];
 
     // Start is called before the first frame update
     void Start()
@@ -28,13 +28,13 @@ public class BuildingClick : MonoBehaviour
             RaycastHit hit;
             Ray ray = myCam.ScreenPointToRay(Input.mousePosition);
 
-            if (Physics.Raycast(ray, out hit, Mathf.Infinity, clickable))
+            if (Physics.Raycast(ray, out hit, Mathf.Infinity, buildingsLayer))
             {
-                SelectBuilding(hit.collider.gameObject); // Select building
+                SelectBuilding(hit.collider.gameObject);
             }
             else
             {
-                DeselectBuilding(); // Deselect building
+                DeselectBuilding();
             }
         }
     }
@@ -43,14 +43,25 @@ public class BuildingClick : MonoBehaviour
     {
         if (selectedBuilding != null)
         {
-            DeselectBuilding(); // Deselect previously selected building
+            DeselectBuilding();
         }
 
         selectedBuilding = building;
         ShowSphere(selectedBuilding, true);
         Debug.Log("Building selected: " + building.name);
-        ShowCollectorButton(true);
 
+        Building buildingComponent = building.GetComponent<Building>();
+        if (buildingComponent != null)
+        {
+            if (buildingComponent.type == Building.Type.TownCentre)
+            {
+                CreateCollectorButton();
+            }
+            else if (buildingComponent.type == Building.Type.Barracks)
+            {
+                CreateBarracksButtons();
+            }
+        }
     }
 
     void DeselectBuilding()
@@ -60,7 +71,19 @@ public class BuildingClick : MonoBehaviour
             ShowSphere(selectedBuilding, false);
             Debug.Log("Building deselected: " + selectedBuilding.name);
             selectedBuilding = null;
-            ShowCollectorButton(false);
+
+            if (collectorButtonInstance != null)
+            {
+                Destroy(collectorButtonInstance);
+            }
+
+            foreach (var button in barracksButtons)
+            {
+                if (button != null)
+                {
+                    Destroy(button);
+                }
+            }
         }
     }
 
@@ -76,51 +99,67 @@ public class BuildingClick : MonoBehaviour
             Debug.LogWarning("Sphere child not found in building: " + building.name);
         }
     }
-    void ShowCollectorButton(bool show)
+
+    void CreateCollectorButton()
     {
-        if (show)
+        if (collectorButtonInstance == null)
         {
-            if (selectedBuilding != null && collectorButton == null)
+            collectorButtonInstance = Instantiate(buttonPrefab, buildingPanel.transform);
+            Text buttonText = collectorButtonInstance.GetComponentInChildren<Text>();
+            if (buttonText != null)
             {
-                // Create collector button if it doesn't exist
-                collectorButton = Instantiate(collectorPrefab, buildingPanel.transform);
-                Button buttonComponent = collectorButton.GetComponent<Button>();
-                if (buttonComponent != null)
-                {
-                    buttonComponent.onClick.AddListener(CreateCollector);
-                }
-                else
-                {
-                    Debug.LogWarning("Button component not found on collector prefab.");
-                }
+                buttonText.text = "Collector";
             }
-        }
-        else
-        {
-            // Hide collector button if it exists
-            if (collectorButton != null)
+            Button button = collectorButtonInstance.GetComponent<Button>();
+            if (button != null)
             {
-                Destroy(collectorButton);
-                collectorButton = null;
+                button.onClick.AddListener(SpawnCollector);
             }
         }
     }
 
-    void CreateCollector()
+    void CreateBarracksButtons()
     {
-        // Start coroutine to wait 5 seconds before spawning collector
-        StartCoroutine(SpawnCollectorAfterDelay());
+        string[] buttonNames = { "Footman", "Mage", "Paladin" };
+
+        for (int i = 0; i < buttonNames.Length; i++)
+        {
+            if (barracksButtons[i] == null)
+            {
+                barracksButtons[i] = Instantiate(buttonPrefab, buildingPanel.transform);
+                Text buttonText = barracksButtons[i].GetComponentInChildren<Text>();
+                if (buttonText != null)
+                {
+                    buttonText.text = buttonNames[i];
+                }
+                Button button = barracksButtons[i].GetComponent<Button>();
+                if (button != null)
+                {
+                    int index = i; // Capture the current value of i
+                    button.onClick.AddListener(() => SpawnUnit(index)); // Use a lambda to capture the index value
+                }
+            }
+        }
     }
 
-    IEnumerator SpawnCollectorAfterDelay()
+    public void SpawnCollector()
     {
-        yield return new WaitForSeconds(5f);
-
         if (selectedBuilding != null)
         {
-            // Spawn collector 2 units away from selected building
-            Vector3 spawnPosition = selectedBuilding.transform.position + selectedBuilding.transform.forward * 2f;
-            Instantiate(collectorPrefab, spawnPosition, Quaternion.identity);
+            Vector3 spawnPosition = selectedBuilding.transform.position + selectedBuilding.transform.forward * 3f;
+            Instantiate(unitPrefab, spawnPosition, Quaternion.identity);
+        }
+    }
+
+    void SpawnUnit(int index)
+    {
+        if (selectedBuilding != null)
+        {
+            Vector3 spawnPosition = selectedBuilding.transform.position + selectedBuilding.transform.forward * 3f;
+            // Instantiate unitPrefab based on the index
+            // For example, you may want to have different prefabs for each unit type
+            // Here, assuming unitPrefab is a placeholder, you might want to replace it with actual unit prefabs
+            Instantiate(unitPrefab, spawnPosition, Quaternion.identity);
         }
     }
 }

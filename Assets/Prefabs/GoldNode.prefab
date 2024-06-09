@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 6977013684107980883}
   - component: {fileID: 2440436168536985173}
   - component: {fileID: -4194800631960964024}
+  - component: {fileID: 4604049132231740791}
   m_Layer: 10
   m_Name: GoldNode
   m_TagString: Gold
@@ -48,7 +49,7 @@ SphereCollider:
   m_IsTrigger: 1
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 0.86
+  m_Radius: 0.92
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!54 &2440436168536985173
 Rigidbody:
@@ -82,6 +83,20 @@ NavMeshObstacle:
   m_CarveOnlyStationary: 1
   m_Center: {x: 0, y: 0, z: 0}
   m_TimeToStationary: 0.5
+--- !u!114 &4604049132231740791
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5138865148860758169}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ffc8f3e598304f2489253fd058013e16, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ResourcesRemaining: 100
+  resourceType: 2
 --- !u!1 &5806112380903026889
 GameObject:
   m_ObjectHideFlags: 0

@@ -7,11 +7,15 @@ TagManager:
   - MinimapCamera
   - Resource
   - Enemy
+  - HumanTC
+  - HumanStorage
+  - Tree
+  - Gold
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - HumanTC
+  - Buildings
   - Water
   - UI
   - Minimap

@@ -5,9 +5,9 @@ using TMPro;
 
 public class ResourceManager : MonoBehaviour
 {
-    [SerializeField] private int gold = 225;
-    [SerializeField] private int wood = 300;
-    [SerializeField] private int population = 10;
+    [SerializeField] private int gold = 400;
+    [SerializeField] private int wood = 200;
+    [SerializeField] private int population = 0;
 
     [SerializeField] private TextMeshProUGUI woodText;
     [SerializeField] private TextMeshProUGUI goldText;

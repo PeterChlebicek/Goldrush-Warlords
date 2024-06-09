@@ -13,10 +13,18 @@ public abstract class Building : MonoBehaviour
     [SerializeField]
     protected int priceWood;
 
+    public Type type; // Pøidání této promìnné
     public enum Team
     {
         Player,
         Enemy,
         Aggresive
+    }
+    public enum Type
+    {
+        House,
+        Barracks,
+        TownCentre,
+        Storage
     }
 }

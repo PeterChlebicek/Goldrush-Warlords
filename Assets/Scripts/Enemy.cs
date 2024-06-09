@@ -9,13 +9,24 @@ public class Enemy : MonoBehaviour
     public string playerTag = "Player";
     public float searchRadius = 5f;
     public float moveSpeed = 3f;
+    public float rotationSpeed = 5f; // Rychlost otáèení
 
     private GameObject Player;
+    private Animator animator;
+    private bool isMoving = true;
+
+    void Start()
+    {
+        animator = GetComponent<Animator>();
+    }
 
     void Update()
     {
-        SearchForBlueCapsule();
-        MoveTowardsBlueCapsule();
+        if (isMoving)
+        {
+            SearchForBlueCapsule();
+            MoveTowardsBlueCapsule();
+        }
     }
 
     void SearchForBlueCapsule()
@@ -39,11 +50,16 @@ public class Enemy : MonoBehaviour
             GameObject closestPlayer = GetClosestPlayer();
             if (closestPlayer != null)
             {
+                animator.SetBool("IsMoving", true);
                 Vector3 direction = closestPlayer.transform.position - transform.position;
                 direction.y = 0;
                 direction.Normalize();
 
+                // Pohyb nepøítele
                 transform.Translate(direction * moveSpeed * Time.deltaTime);
+
+                // Otoèení k hráèi
+                RotateTowards(closestPlayer.transform.position);
             }
         }
     }
@@ -64,5 +80,21 @@ public class Enemy : MonoBehaviour
         }
 
         return closestPlayer;
+    }
+
+    void RotateTowards(Vector3 targetPosition)
+    {
+        Vector3 direction = (targetPosition - transform.position).normalized;
+        Quaternion lookRotation = Quaternion.LookRotation(new Vector3(direction.x, 0, direction.z));
+        transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, Time.deltaTime * rotationSpeed);
+    }
+
+    void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.CompareTag(playerTag))
+        {
+            isMoving = false;
+            animator.SetBool("IsMoving", false);
+        }
     }
 }

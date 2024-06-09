@@ -5,7 +5,13 @@ using System.Collections.Generic;
 public class UnitMovement : MonoBehaviour
 {
     private NavMeshAgent navMeshAgent;
+    private Animator animator;
+    private Unit unit;  // Odkaz na komponentu Unit
+
+    public Voiceline voiceline;
+
     [SerializeField] private float speed = 5f;
+
     private bool isMoving = false;
     private Vector3 targetPosition;
 
@@ -15,7 +21,10 @@ public class UnitMovement : MonoBehaviour
 
     void Start()
     {
+
+        animator = GetComponent<Animator>();
         navMeshAgent = GetComponent<NavMeshAgent>();
+        unit = GetComponent<Unit>(); // Inicializace komponenty Unit
     }
 
     void Update()
@@ -24,6 +33,7 @@ public class UnitMovement : MonoBehaviour
         {
             if (Input.GetMouseButtonDown(1))  // Pravé tlaèítko myši
             {
+
                 Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
                 RaycastHit hit;
 
@@ -35,11 +45,11 @@ public class UnitMovement : MonoBehaviour
 
             if (isMoving)
             {
+                animator.SetBool("IsMoving", true);
                 MoveToClickPoint(targetPosition);
             }
         }
     }
-
 
 
     private void SetFormation(Vector3 destination, Vector3 clickDirection)
@@ -99,6 +109,23 @@ public class UnitMovement : MonoBehaviour
         if (Vector3.Distance(transform.position, destination) < 0.5f)
         {
             isMoving = false;
+            animator.SetBool("IsMoving", false);
         }
+    }
+
+    public void StopMovement()
+    {
+        isMoving = false;
+        navMeshAgent.isStopped = true;
+        animator.SetBool("IsMoving", false);
+    }
+
+    public void Attack(Unit targetUnit)
+    {
+        // Zastavení pohybu a animátoru pøi útoku
+        StopMovement();
+
+        // Zavolání metody útoku na jednotce
+        unit.Attack(targetUnit);
     }
 }
